@@ -13,6 +13,8 @@ userRoute.post('/register', UserController.signUp);
 userRoute.post('/login', UserController.logIn);
 userRoute.post("/auth", auth)
 userRoute.delete("/logout", UserController.logOut)
+userRoute.post("/resetpassword", UserController.resetPassword)
+userRoute.post("/forgotpassword", UserController.forgotPassword)
 
 // // API endpoint for getting user profile
 // userRoute.get('/profile/:userId', UserController.getUserProfile);

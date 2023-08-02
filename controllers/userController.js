@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import dbClient from "../db/db";
 import sha1 from "sha1"
 import redisClient from "../db/redis"
+import sendMail from "../utility/sendMail";
 
 
 async function signUp(req, res){
@@ -53,21 +54,21 @@ async function logIn(req, res){
     }
     const hashed_password = sha1(password)
     
-    const find_user = `SELECT id FROM users WHERE users.email = ? AND users.password=?`
+    const find_user = `SELECT * FROM users WHERE users.email = ? AND users.password=?`
     let values = [email, hashed_password]
 
     dbClient.db.query(find_user, values, (error, result, fields)=>{
         if (error) {
             console.log(error);
         }
+        console.log(result.length)
         if (result[0]){
             result.forEach(async (user)=>{
                 const token = uuidv4()
                 const key = `auth_${token}`
-                console.log(user.id)
                 res.cookie("session_id", token)
                 await redisClient.set(key, user.id, 60*60*240)
-                res.status(201).json({token: token, user: user.id})
+                res.status(201).json({token: token, user: user.email})
                 return            
             })
         }else{
@@ -85,10 +86,76 @@ async function logOut(req, res){
     
 }
 
+
+async function forgotPassword(req, res){
+    const email = req.body ? req.body.email : null;
+    
+    const find_user = `SELECT * FROM users WHERE users.email = ? limit 1`
+    let values = [email]
+
+    dbClient.db.query(find_user, values, (error, result, fields)=>{
+        if (error) {
+            console.log(error);
+        }
+        
+        if (result.length > 0){
+            result.forEach(async (user)=>{
+                const token = uuidv4()
+                const key = `reset_${token}`
+                console.log(user.username)   
+                await redisClient.set(key, user.id, 60)
+                const mailOptions = {
+                    from: "ProjMan",
+                    to: email,
+                    subject: "testing",
+                    text: `reset token is ${token}`
+                }
+                
+                sendMail(mailOptions)
+                res.status(201).json({token: token, user: user.email})
+                return            
+            })
+        }else{
+            res.status(401).json("user does not exist")
+        }
+    })
+}
+
+async function resetPassword(req, res){
+    console.log("reset")
+    const token = req.body ? req.body.token: null;
+    const password = req.body ? req.body.password : null
+    const key = `reset_${token}`
+    const userId = await redisClient.get(key)
+
+    if (!password){
+        res.status(401).json({error: "password is null"})
+    }
+    if (!userId){
+        res.status(401).json({error: "userId is null"})
+    }
+
+    const hashed_password = sha1(password)
+    const changePassword = `UPDATE users SET password=? WHERE users.id = ?`
+    const values = [hashed_password, userId]
+
+    dbClient.db.query(changePassword, values, (error, result, fields)=>{
+        if (error) {
+            console.log(error);
+        }
+        
+        console.log(result)
+        res.send("password set successful")
+    })
+}
+
+
 const UserController = {
     signUp,
     logIn,
-    logOut
+    logOut,
+    forgotPassword,
+    resetPassword
 }
 
 module.exports = UserController
