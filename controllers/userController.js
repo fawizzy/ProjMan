@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import dbClient from "../db/db";
+import dbClient from "../db/mysql";
 import sha1 from "sha1"
 import redisClient from "../db/redis"
 import sendMail from "../utility/sendMail";

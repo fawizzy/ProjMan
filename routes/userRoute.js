@@ -1,10 +1,9 @@
-import { Router } from "express";
 import UserController from "../controllers/userController"
 import auth from "../middlewares/auth"
+const userRoute = require("./index")
 
 
 
-const userRoute = Router();
 
 // API endpoint for user registration
 userRoute.post('/register', UserController.signUp);

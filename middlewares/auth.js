@@ -1,6 +1,6 @@
 import redisClient from "../db/redis"
 
-const auth = async (req, res)=>{
+const auth = async (req, res, next)=>{
     try {
         const token = req.cookies.session_id
         const key = `auth_${token}`
@@ -9,7 +9,8 @@ const auth = async (req, res)=>{
         if (!id){
             res.status(401).json({message: "unauthorized user"})
         }else{
-            res.status(401).json({message: "authorized user"})
+            res.locals.id = id;
+            next()
         }     
     } catch (error) {
         console.log(error)

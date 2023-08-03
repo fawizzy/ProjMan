@@ -1,6 +1,4 @@
-const route = require("express").Router() 
+import { Router } from "express"
 
-route.get("/", (req, res)=>{
-    res.send("hello")
-})
+const route = Router()
 module.exports = route

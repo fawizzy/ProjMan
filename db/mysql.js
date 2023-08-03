@@ -5,6 +5,7 @@ class DBClient{
         this.db = mysql.createConnection({
             host     : 'localhost',
             user     : 'root',
+            multipleStatements : true,
             //password : '@Oduola1999',
             database: "project_management"
           });
