@@ -67,7 +67,8 @@ async function logIn(req, res){
                 const token = uuidv4()
                 const key = `auth_${token}`
                 res.cookie("session_id", token)
-                await redisClient.set(key, user.id, 60*60*240)
+                const user_string = JSON.stringify(user)
+                await redisClient.set(key, user_string, 60*60*240)
                 res.status(201).json({token: token, user: user.email})
                 return            
             })

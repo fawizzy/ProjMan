@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import dbClient from "../db/mysql";
-import redisClient from "../db/redis"
-import sha1 from "sha1"
+
 
 
 async function createProject(req, res) {
@@ -11,12 +10,13 @@ async function createProject(req, res) {
     const start_date = req.body ? req.body.start_date: null;
     const end_date = req.body ? req.body.end_date: null;
     const admin_id = uuidv4()
-    const user_id = res.locals.id
+    const user = JSON.parse(res.locals.user)
+    const user_id = user.id
     const insert_project = `INSERT INTO projects (id, project_name, project_description, start_date, end_date) VALUES (?, ?, ?, ?, ?);
-                            INSERT INTO Admin (id, user_id, project_id) VALUES (?, ?, ?)`
+                            INSERT INTO project_manager (id, user_id, project_id) VALUES (?, ?, ?)`
     const values = [project_id, project_name, project_description, start_date, end_date, admin_id, user_id, project_id]
-    console.log(values)
-
+    
+    console.log(user_id)
     dbClient.db.query(insert_project, values, (err, results)=> {
         if (err) {
             console.log(err.message)
@@ -24,7 +24,6 @@ async function createProject(req, res) {
         }
 
         if (results) {
-            console.log(results.message)
             res.status(201).json({message: "project created"})
         }
     })
@@ -53,9 +52,9 @@ async function deleteProject(req, res) {
 }
 
 
-const projecCountroller ={
+const projectCountroller ={
     createProject,
     deleteProject
 }
 
-module.exports = projecCountroller
+module.exports = projectCountroller

@@ -5,10 +5,11 @@ const auth = async (req, res, next)=>{
         const token = req.cookies.session_id
         const key = `auth_${token}`
         //const key = `auth_${req.params ? req.params.id : null}`;
-        const user = await redisClient.get(key)
+        let user = await redisClient.get(key)
         if (!user){
             res.status(401).json({message: "unauthorized user"})
         }else{
+            user = JSON.parse(user); 
             res.locals.user = user;
             next()
         }     

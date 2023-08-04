@@ -3,6 +3,8 @@ const express = require("express")
 const index =require("./routes/index")
 const userRoute = require("./routes/userRoute")
 const projectRoute = require("./routes/projectRoute")
+const taskRoute = require("./routes/taskRoute")
+const projectManagerRoute = require("./routes/projectManagerRoute")
 const cookieParser = require("cookie-parser")
 
 
@@ -14,6 +16,8 @@ app.use(express.json())
 app.use(cookieParser())
 app.use("/", userRoute);
 app.use(projectRoute);
+app.use(taskRoute);
+app.use(projectManagerRoute)
 
 app.get("/createdb", (req, res)=>{
     const sql = 'CREATE DATABASE project_management'
