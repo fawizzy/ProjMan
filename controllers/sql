@@ -1,0 +1,4 @@
+SELECT * FROM tasks
+INNER JOIN project_manager
+ON tasks.project_id = project_manager.project_id
+WHERE project_manager.user_id="0e91f08c-8ad1-4c99-8bc2-eca88ae4da5a"

@@ -5,14 +5,15 @@ import redisClient from "../db/redis"
 import sendMail from "../utility/sendMail";
 
 
-async function signUp(req, res){
-    let someVar = []
+async function signUp(req, res, next){
+    const id = uuidv4();
     const username = req.body ? req.body.username : null;
     const email = req.body ? req.body.email : null;
     const password = req.body ? req.body.password : null;
-    //const users = await dbClient.db.collection("users");
+    const role = req.body ? req.body.role : null;
+
     if (!username){
-        res.status(400).json({error: "Missing name"});
+        res.status(400).json({error: "Missing username"});
         return;
     }
     if (!email){
@@ -23,24 +24,32 @@ async function signUp(req, res){
         res.status(400).json({error: "Missing password"});
         return;
     }
+    if (!role){
+        res.status(400).json({error: "Missing role"});
+        return;
+    }
 
     const hashed_password = sha1(password)
-    const insert_user = `INSERT INTO users (id, email, username, password) VALUES (?, ?, ?, ?)`
-    values = [uuidv4(), email, username, hashed_password]
+    const insert_user = `INSERT INTO users (id, email, username, password, role) VALUES (?, ?, ?, ?, ?)`
+    const values = [id, email, username, hashed_password, role]
 
     dbClient.db.query(insert_user, values, (error, result, fields)=>{
-        if (error.errno===1062) {
+        if (error) {
             console.log(error);
-            res.status(401).json("user already exists")
+            res.status(401).json(error.message)
         }
         else{
-            res.status(201).json("user inserted")
+            res.locals.user_id = id
+            next()
         }
-    })    
+    })
+
+    
 }
 
 
 async function logIn(req, res){
+    console.log("login")
     const email = req.body ? req.body.email : null;
     const password = req.body ? req.body.password : null;
 
@@ -73,7 +82,7 @@ async function logIn(req, res){
                 return            
             })
         }else{
-            res.status(401).json("invalid email or password")
+            res.status(401).json({error:"invalid email or password"})
         }
 
     })
@@ -150,13 +159,24 @@ async function resetPassword(req, res){
     })
 }
 
+async function currentUser(req, res){
+    let user = JSON.parse(res.locals.user)
+    user = {
+        id: user.id,
+        email: user.email,
+        username: user.username
+    }
+    res.status(201).json(user)
+}
+
 
 const UserController = {
     signUp,
     logIn,
     logOut,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    currentUser
 }
 
 module.exports = UserController

@@ -36,7 +36,7 @@ async function deleteProject(req, res) {
     } 
 
     const delete_project = `DELETE FROM projects WHERE projects.id = ?;
-                            DELETE FROM Admin WHERE Admin.project_id=  ?`
+                            DELETE FROM project_manager WHERE project_manager.project_id=  ?`
     const values = [project_id, project_id]
 
     dbClient.db.query(delete_project, values, (err, results)=>{
@@ -51,10 +51,28 @@ async function deleteProject(req, res) {
     })
 }
 
+async function allProjects(req, res){
+    const allprojects = `SELECT projects.project_name FROM projects`
+
+    dbClient.db.query(allprojects, (err, results)=>{
+        if (err){
+            console.log(err)
+        }
+        if (results.length > 0) {
+            const projects_list = []
+            results.forEach((projects) => {
+                projects_list.push(projects)
+            })
+            res.status(201).json(projects_list)
+        }
+    })
+}
+
 
 const projectCountroller ={
     createProject,
-    deleteProject
+    deleteProject,
+    allProjects
 }
 
 module.exports = projectCountroller
