@@ -61,11 +61,47 @@ async function addUserToProject(req, res){
     const user_id = req.body ? req.body.user_id : null;   
 }
 
-async function assignTaskToUser(req, res){
-    const task_id = req.body ? req.body.task_id : null;
-    const user_id = req.body ? req.body.user_id : null;
-    const project_id = req.body ? req.body.project_id : null;
-    
+async function assignTaskToMember(req, res){
+    const requestBody = req.body || {};  
+    const taskData = {
+        id: uuidv4(),
+        project_id: requestBody.project_id || null,
+        project_member_id: requestBody.project_member_id || null,
+        task_info: requestBody.task_info || null,
+    };
+
+    const requiredFields = [
+        "id",
+        "project_id",
+        "project_member_id",
+        "task_info"
+    ];
+
+    for (const field of requiredFields) {
+        if (!taskData[field]) {
+            delUserIfError(managerData.user_id)
+            res.status(400).json({ error: `Missing ${field.replace("_", " ")}` });
+            return;
+        }
+    }
+    const checkProjectManager = `SELECT id FROM project_manager WHERE project_manager.user_id =?`
+    const insert_task = `INSERT INTO member_assignment (id, project_id, project_member_id, task_info) VALUES (?, ?, ?, ?)`
+    const values = [
+        taskData.id,
+        taskData.project_id,
+        taskData.project_member_id,
+        taskData.task_info
+    ];
+
+    dbClient.db.query(insert_task, values, (error, result, fields)=>{
+        if (error) {
+            console.log(error);
+            res.status(401).json("error assigning member")
+        }
+        else{
+            res.status(201).json("member assigned")
+        }
+    })
 }
 
 async function projectByProjectManager(req, res){
@@ -91,7 +127,8 @@ async function delUserIfError(user_id){
 }
 
 const projectManagerController = {
-    registerProjectManager
+    registerProjectManager,
+    assignTaskToMember
 }
 
 module.exports = projectManagerController;
